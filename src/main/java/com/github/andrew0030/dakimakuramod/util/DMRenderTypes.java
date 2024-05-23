@@ -18,7 +18,7 @@ public class DMRenderTypes extends RenderStateShard
     {
         RenderType.CompositeState state = RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_ENTITY_CUTOUT_SHADER)
-                .setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+                .setTextureState(new TextureStateShard(texture, false, false))
                 .setTransparencyState(NO_TRANSPARENCY)
                 .setLightmapState(LIGHTMAP)
                 .setOverlayState(OVERLAY)

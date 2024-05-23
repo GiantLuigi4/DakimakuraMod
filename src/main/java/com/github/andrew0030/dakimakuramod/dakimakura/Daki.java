@@ -2,14 +2,10 @@ package com.github.andrew0030.dakimakuramod.dakimakura;
 
 import com.github.andrew0030.dakimakuramod.DakimakuraMod;
 import com.github.andrew0030.dakimakuramod.dakimakura.pack.IDakiPack;
-import com.github.andrew0030.dakimakuramod.util.TranslationHelper;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
-import org.checkerframework.checker.i18nformatter.qual.I18nChecksFormat;
 
-import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 

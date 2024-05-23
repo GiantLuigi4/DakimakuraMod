@@ -1,7 +1,6 @@
 package com.github.andrew0030.dakimakuramod.registries;
 
 import com.github.andrew0030.dakimakuramod.DakimakuraMod;
-import com.github.andrew0030.dakimakuramod.dakimakura.Daki;
 import com.github.andrew0030.dakimakuramod.dakimakura.serialize.DakiTagSerializer;
 import com.github.andrew0030.dakimakuramod.items.DakimakuraDesignItem;
 import net.minecraft.client.renderer.item.ItemProperties;

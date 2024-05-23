@@ -1,8 +1,8 @@
 package com.github.andrew0030.dakimakuramod.dakimakura;
 
+import com.github.andrew0030.dakimakuramod.dakimakura.pack.DakiPackFolder;
 import com.github.andrew0030.dakimakuramod.dakimakura.pack.DakiPackZip;
 import com.github.andrew0030.dakimakuramod.dakimakura.pack.IDakiPack;
-import com.github.andrew0030.dakimakuramod.dakimakura.pack.DakiPackFolder;
 import com.github.andrew0030.dakimakuramod.netwok.NetworkUtil;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;

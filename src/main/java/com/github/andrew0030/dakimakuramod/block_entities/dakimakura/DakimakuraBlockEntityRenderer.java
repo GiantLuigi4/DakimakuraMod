@@ -16,7 +16,7 @@ public class DakimakuraBlockEntityRenderer implements BlockEntityRenderer<Dakima
 
     public DakimakuraBlockEntityRenderer(BlockEntityRendererProvider.Context context)
     {
-        this.dakimakuraModel = new DakimakuraModel();
+        this.dakimakuraModel = DakimakuraModel.INSTANCE;
     }
 
     @Override
@@ -64,9 +64,9 @@ public class DakimakuraBlockEntityRenderer implements BlockEntityRenderer<Dakima
             poseStack.mulPose(Axis.YN.rotationDegrees(180));
 
         if (lod == -1)
-            this.dakimakuraModel.render(poseStack, buffer, packedLight, blockEntity.getDaki(), blockEntity.getBlockPos());
+            this.dakimakuraModel.render(poseStack, packedLight, blockEntity.getDaki(), blockEntity.getBlockPos());
         else
-            this.dakimakuraModel.render(poseStack, buffer, packedLight, blockEntity.getDaki(), lod);
+            this.dakimakuraModel.render(poseStack, packedLight, blockEntity.getDaki(), lod);
 
         poseStack.popPose();
     }
