@@ -62,9 +62,9 @@ public class ObjVbo implements Closeable {
                 float y = norm.y;
                 float z = norm.z;
 
-                float nx = java.lang.Math.fma(matrix3f.m00(), x, java.lang.Math.fma(matrix3f.m10(), y, matrix3f.m20() * z));
-                float ny = java.lang.Math.fma(matrix3f.m01(), x, java.lang.Math.fma(matrix3f.m11(), y, matrix3f.m21() * z));
-                float nz = java.lang.Math.fma(matrix3f.m02(), x, Math.fma(matrix3f.m12(), y, matrix3f.m22() * z));
+                float nx = Math.fma(matrix3f.m00(), x, Math.fma(matrix3f.m10(), y, matrix3f.m20() * z));
+                float ny = Math.fma(matrix3f.m01(), x, Math.fma(matrix3f.m11(), y, matrix3f.m21() * z));
+                float nz = Math.fma(matrix3f.m02(), x, Math.fma(matrix3f.m12(), y, matrix3f.m22() * z));
 
                 nB.put(index, SmartBufferBuilder.normalIntValue(nx));
                 nB.put(index + 1, SmartBufferBuilder.normalIntValue(ny));
