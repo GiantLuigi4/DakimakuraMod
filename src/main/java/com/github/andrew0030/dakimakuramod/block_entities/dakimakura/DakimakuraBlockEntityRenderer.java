@@ -68,7 +68,7 @@ public class DakimakuraBlockEntityRenderer implements BlockEntityRenderer<Dakima
         }
 
         if(blockEntity.isFlipped())
-            poseStack.mulPose(Axis.YN.rotationDegrees(180));
+            poseStack.last().normal().rotate(Axis.YN.rotationDegrees(180));
 
         if (lod == -1)
             this.dakimakuraModel.render(poseStack, packedLight, blockEntity.getDaki(), blockEntity.getBlockPos());

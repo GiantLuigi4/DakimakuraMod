@@ -31,9 +31,9 @@ public class DMRenderTypes extends RenderStateShard
         RenderType.CompositeState state = RenderType.CompositeState.builder()
                 .setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
                 .setTextureState(new DMRenderStateShard(id))
-                .setTransparencyState(NO_TRANSPARENCY)
+                .setTransparencyState(DMTransparencyStateShard.INSTANCE)
                 .setLightmapState(LIGHTMAP)
-                .setOverlayState(OVERLAY)
+                .setOverlayState(NO_OVERLAY)
                 .createCompositeState(true);
         return RenderType.create(DakimakuraMod.MODID + "dakimakura", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, RenderType.TRANSIENT_BUFFER_SIZE, true, false, state);
     }

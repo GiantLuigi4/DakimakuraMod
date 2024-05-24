@@ -67,12 +67,14 @@ public class DakimakuraModel
                     renderType;
         }
 
+        RenderType.solid().setupRenderState();
         renderType.setupRenderState();
 
         ObjVbo model = lod == 0 ? DAKIMAKURA_MODEL : DAKIMAKURA_MODEL_LODS[lod - 1];
         model.render(stack, packedLight);
 
         renderType.clearRenderState();
+        RenderType.solid().clearRenderState();
 
         stack.popPose();
     }
