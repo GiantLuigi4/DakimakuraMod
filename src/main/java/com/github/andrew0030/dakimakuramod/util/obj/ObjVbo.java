@@ -8,6 +8,8 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.libc.LibCString;
 
@@ -52,17 +54,12 @@ public class ObjVbo implements Closeable {
 
             long asLong = packedLight | ((long) packedLight << 32L);
 
-            for (int i = 0; i < initialFillIters; i++)
-                lB.putLong(i << 3, asLong);
-            LibCString.nmemcpy(addr + capacityQuarter, addr, capacityQuarter);
-            LibCString.nmemcpy(addr + capacityHalf, addr, capacityHalf);
+            for (int i = 0; i < lB.capacity() / 8; i++) lB.putLong(i << 3, asLong);
             buffer.updateElement(lB.position(0).limit(lB.capacity()), 0);
         }
 
-        Lighting.setupLevel(RenderSystem.getModelViewMatrix());
         RenderSystem.getModelViewStack().pushPose();
         RenderSystem.getModelViewStack().last().pose().set(stack.last().pose());
-        RenderSystem.getModelViewStack().last().normal().set(stack.last().normal());
         RenderSystem.applyModelViewMatrix();
 
         buffer.bind();
@@ -71,7 +68,6 @@ public class ObjVbo implements Closeable {
 
         RenderSystem.getModelViewStack().popPose();
         RenderSystem.applyModelViewMatrix();
-        Lighting.setupLevel(RenderSystem.getModelViewMatrix());
     }
 
     public void reload() {

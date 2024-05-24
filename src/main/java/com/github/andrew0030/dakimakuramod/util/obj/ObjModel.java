@@ -14,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
 {
@@ -43,49 +44,20 @@ public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
 //            }
 //        }
 
-        int index = 0;
+        int[] index = new int[1];
 
         try
         {
-//            HashMap<VertexKey, Integer> keys = new HashMap<>();
-//            for (Face face : faces) {
-//            }
-
-            for (Face face : this.faces)
-            {
-                Vector3f v1 = v[face.v1 - 1];
-                Vector3f v2 = v[face.v2 - 1];
-                Vector3f v3 = v[face.v3 - 1];
-
-                Vector2f vt1 = new Vector2f(vt[face.vt1 - 1].x, vt[face.vt1 - 1].y);
-                Vector2f vt2 = new Vector2f(vt[face.vt2 - 1].x, vt[face.vt2 - 1].y);
-                Vector2f vt3 = new Vector2f(vt[face.vt3 - 1].x, vt[face.vt3 - 1].y);
-
-                vt1.x *= 2;
-                if (vt1.x > 1) vt1.x -= 1;
-                else vt1.y += 0.5;
-                vt1.y /= 2;
-
-                vt2.x *= 2;
-                if (vt2.x > 1) vt2.x -= 1;
-                else vt2.y += 0.5f;
-                vt2.y /= 2;
-
-                vt3.x *= 2;
-                if (vt3.x > 1) vt3.x -= 1;
-                else vt3.y += 0.5f;
-                vt3.y /= 2;
-
-                Vector3f vn1 = vn[face.vn1 - 1];
-                Vector3f vn2 = vn[face.vn2 - 1];
-                Vector3f vn3 = vn[face.vn3 - 1];
-
-                this.addVertex(buffer, v1.x(), v1.y(), v1.z(), vt1.x, 1-vt1.y, packedLight, vn1.x(), vn1.y(), vn1.z());
-                this.addVertex(buffer, v2.x(), v2.y(), v2.z(), vt2.x, 1-vt2.y, packedLight, vn2.x(), vn2.y(), vn2.z());
-                this.addVertex(buffer, v3.x(), v3.y(), v3.z(), vt3.x, 1-vt3.y, packedLight, vn3.x(), vn3.y(), vn3.z());
-                buffer.index(index++);
-                buffer.index(index++);
-                buffer.index(index++);
+            HashMap<VertexKey, Integer> keys = new HashMap<>();
+            for (Face face : faces) {
+                for (VertexKey key : face.keys(this)) {
+                    buffer.index(
+                            keys.computeIfAbsent(key, (k) -> {
+                                this.addVertex(buffer, key.vert.x(), key.vert.y(), key.vert.z(), key.tex.x, 1 - key.tex.y, packedLight, key.norm.x(), key.norm.y(), key.norm.z());
+                                return index[0]++;
+                            })
+                    );
+                }
             }
         }
         catch (Exception e)
@@ -203,24 +175,24 @@ public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
             Vector2f vt3 = new Vector2f(model.vt[this.vt3 - 1].x, model.vt[this.vt3 - 1].y);
 
             vt1.x *= 2;
+            vt1.y /= 2;
             if (vt1.x > 1) vt1.x -= 1;
             else vt1.y += 0.5;
-            vt1.y /= 2;
 
             vt2.x *= 2;
+            vt2.y /= 2;
             if (vt2.x > 1) vt2.x -= 1;
             else vt2.y += 0.5f;
-            vt2.y /= 2;
 
             vt3.x *= 2;
+            vt3.y /= 2;
             if (vt3.x > 1) vt3.x -= 1;
             else vt3.y += 0.5f;
-            vt3.y /= 2;
 
             return new VertexKey[]{
-                    new VertexKey(model.v[v1], vt1, model.vn[vn1]),
-                    new VertexKey(model.v[v2], vt2, model.vn[vn2]),
-                    new VertexKey(model.v[v3], vt3, model.vn[vn3]),
+                    new VertexKey(model.v[v1 - 1], vt1, model.vn[vn1 - 1]),
+                    new VertexKey(model.v[v2 - 1], vt2, model.vn[vn2 - 1]),
+                    new VertexKey(model.v[v3 - 1], vt3, model.vn[vn3 - 1]),
             };
         }
     }
