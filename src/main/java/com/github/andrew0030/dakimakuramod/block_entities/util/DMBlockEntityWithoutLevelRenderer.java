@@ -11,10 +11,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.Lazy;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 
 public class DMBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer
 {
@@ -35,7 +37,18 @@ public class DMBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         // Renders the Dakimakura, while passing a lower LOD for GUI
         int lod = (displayContext == ItemDisplayContext.GUI) ? 3 : 0; // TODO add a config option for this
         DakimakuraBlockEntityRenderer renderer = (DakimakuraBlockEntityRenderer) Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(dakiBlockEntity);
+        poseStack.pushPose();
+        if (displayContext == ItemDisplayContext.GUI) {
+            poseStack.translate(0, 0.15f, -625);
+            poseStack.mulPose(new Quaternionf().rotationXYZ(
+                    Mth.DEG_TO_RAD * -45, Mth.DEG_TO_RAD * 5, Mth.DEG_TO_RAD * -25
+            ));
+            poseStack.scale(
+                    0.72f, 0.72f, 0.72f
+            );
+        }
         if (renderer != null)
             renderer.render(dakiBlockEntity, 0.0F, poseStack, buffer, packedLight, packedOverlay, lod);
+        poseStack.popPose();
     }
 }
