@@ -37,9 +37,10 @@ public class DMBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         // Renders the Dakimakura, while passing a lower LOD for GUI
         int lod = (displayContext == ItemDisplayContext.GUI) ? 3 : 0; // TODO add a config option for this
         DakimakuraBlockEntityRenderer renderer = (DakimakuraBlockEntityRenderer) Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(dakiBlockEntity);
-        poseStack.pushPose();
+
         if (displayContext == ItemDisplayContext.GUI) {
-            poseStack.translate(0, 0.15f, -625);
+            poseStack.pushPose();
+            poseStack.translate(0.01f, 0.15f, -625);
             poseStack.mulPose(new Quaternionf().rotationXYZ(
                     Mth.DEG_TO_RAD * -45, Mth.DEG_TO_RAD * 5, Mth.DEG_TO_RAD * -25
             ));
@@ -47,8 +48,10 @@ public class DMBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
                     0.72f, 0.72f, 0.72f
             );
         }
+
         if (renderer != null)
             renderer.render(dakiBlockEntity, 0.0F, poseStack, buffer, packedLight, packedOverlay, lod);
-        poseStack.popPose();
+
+        if (displayContext == ItemDisplayContext.GUI) poseStack.popPose();
     }
 }
