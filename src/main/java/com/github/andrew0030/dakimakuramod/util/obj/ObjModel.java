@@ -1,13 +1,14 @@
 package com.github.andrew0030.dakimakuramod.util.obj;
 
 import com.github.andrew0030.dakimakuramod.DakimakuraMod;
-import com.github.andrew0030.dakimakuramod.util.buffer.SmartBufferBuilder;
-import com.github.andrew0030.dakimakuramod.util.iteration.LinkedStack;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 import org.apache.commons.compress.utils.IOUtils;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -15,52 +16,51 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Stack;
 
 public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
 {
-    record VertexKey(Vector3f vert, Vector2f tex, Vector3f norm) {
-    }
-
-    public void render(SmartBufferBuilder buffer, int packedLight, LinkedStack<Vector3f> norms)
+    public void render(PoseStack stack, VertexConsumer buffer, int packedLight)
     {
-//        buffer.color(255, 255, 255, 255);
-//        buffer.overlay(OverlayTexture.NO_OVERLAY);
-//        buffer.lightmap(0, 0);
-
-//        for (Vector3f vector3f : v) {
-//            buffer.vertex(vector3f.x, vector3f.y, vector3f.z);
-//        }
-//        for (Vector3f vector3f : vn) {
-//            buffer.normal(vector3f.x, vector3f.y, vector3f.z);
-//        }
-//        for (Vec2 vec2 : vt) {
-//            Vector2f vt = new Vector2f(vec2.x, vec2.y);
-//            vt.x *= 2;
-//            vt.y /= 2;
-//            if (vt.x > 1) {
-//                vt.x -= 1;
-//            } else {
-//                vt.y += 0.5;
-//            }
-//        }
-
-        int[] index = new int[1];
-
         try
         {
-            HashMap<VertexKey, Integer> keys = new HashMap<>();
-            for (Face face : faces) {
-                for (VertexKey key : face.keys(this)) {
-                    buffer.index(
-                            keys.computeIfAbsent(key, (k) -> {
-                                this.addVertex(buffer, key.vert.x(), key.vert.y(), key.vert.z(), key.tex.x, 1 - key.tex.y, packedLight, key.norm.x(), key.norm.y(), key.norm.z());
-                                norms.add(key.norm);
-                                return index[0]++;
-                            })
-                    );
+            for (Face face : this.faces)
+            {
+                Vector3f v1 = v[face.v1 - 1];
+                Vector3f v2 = v[face.v2 - 1];
+                Vector3f v3 = v[face.v3 - 1];
+
+                Vector2f vt1 = new Vector2f(vt[face.vt1 - 1].x, vt[face.vt1 - 1].y);
+                Vector2f vt2 = new Vector2f(vt[face.vt2 - 1].x, vt[face.vt2 - 1].y);
+                Vector2f vt3 = new Vector2f(vt[face.vt3 - 1].x, vt[face.vt3 - 1].y);
+
+                Vector3f vn1 = vn[face.vn1 - 1];
+                Vector3f vn2 = vn[face.vn2 - 1];
+                Vector3f vn3 = vn[face.vn3 - 1];
+
+                vt1.x *= 2;
+                vt2.x *= 2;
+                vt3.x *= 2;
+                vt1.y /= 2;
+                vt2.y /= 2;
+                vt3.y /= 2;
+                if (vt1.x > 1) {
+                    vt1.x -= 1;
+                } else {
+                    vt1.y += 0.5;
                 }
+                if (vt2.x > 1) {
+                    vt2.x -= 1;
+                } else {
+                    vt2.y += 0.5f;
+                }
+                if (vt3.x > 1) {
+                    vt3.x -= 1;
+                } else {
+                    vt3.y += 0.5f;
+                }
+                this.addVertex(stack, buffer, v1.x(), v1.y(), v1.z(), vt1.x, 1-vt1.y, packedLight, vn1.x(), vn1.y(), vn1.z());
+                this.addVertex(stack, buffer, v2.x(), v2.y(), v2.z(), vt2.x, 1-vt2.y, packedLight, vn2.x(), vn2.y(), vn2.z());
+                this.addVertex(stack, buffer, v3.x(), v3.y(), v3.z(), vt3.x, 1-vt3.y, packedLight, vn3.x(), vn3.y(), vn3.z());
             }
         }
         catch (Exception e)
@@ -69,13 +69,39 @@ public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
         }
     }
 
-    private void addVertex(SmartBufferBuilder buffer, float x, float y, float z, float u, float v, int packedLight, float nx, float ny, float nz) {
-        buffer.vertex(x, y, z);
-        buffer.normal(nx, ny, nz);
+    private void addVertex(PoseStack stack, VertexConsumer buffer, float x, float y, float z, float u, float v, int packedLight, float nx, float ny, float nz)
+    {
+        pos(buffer, stack.last().pose(), x, y, z);
+//        buffer.vertex(x, y, z);
+        buffer.color(1F, 1F, 1F, 1F);
         buffer.uv(u, v);
-        buffer.color(255, 255, 255, 255);
-        buffer.overlay(OverlayTexture.NO_OVERLAY);
-        buffer.lightmap(packedLight);
+        buffer.overlayCoords(OverlayTexture.NO_OVERLAY);
+        buffer.uv2(packedLight);
+        normal(buffer, stack.last().normal(), nx, ny, nz);
+        buffer.endVertex();
+    }
+
+    private void pos(VertexConsumer buffer, Matrix4f matrix4f, float x, float y, float z)
+    {
+        // Calling 'buffer.pos(matrix4f, x, y, z)' allocates a Vector4f
+        // To avoid allocating so many short-lived vectors we do the transform ourselves instead
+        float w = 1.0F;
+        float tx = Math.fma(matrix4f.m00(), x, Math.fma(matrix4f.m10(), y, Math.fma(matrix4f.m20(), z, matrix4f.m30() * w)));
+        float ty = Math.fma(matrix4f.m01(), x, Math.fma(matrix4f.m11(), y, Math.fma(matrix4f.m21(), z, matrix4f.m31() * w)));
+        float tz = Math.fma(matrix4f.m02(), x, Math.fma(matrix4f.m12(), y, Math.fma(matrix4f.m22(), z, matrix4f.m32() * w)));
+
+        buffer.vertex(tx, ty, tz);
+    }
+
+    private void normal(VertexConsumer bufferBuilder, Matrix3f matrix3f, float x, float y, float z)
+    {
+        // Calling 'bufferBuilder.normal(matrix3f, x, y, z)' allocates a Vector3f
+        // To avoid allocating so many short-lived vectors we do the transform ourselves instead
+        float nx = Math.fma(matrix3f.m00(), x, Math.fma(matrix3f.m10(), y, matrix3f.m20() * z));
+        float ny = Math.fma(matrix3f.m01(), x, Math.fma(matrix3f.m11(), y, matrix3f.m21() * z));
+        float nz = Math.fma(matrix3f.m02(), x, Math.fma(matrix3f.m12(), y, matrix3f.m22() * z));
+
+        bufferBuilder.normal(nx, ny, nz);
     }
 
     public static ObjModel loadModel(ResourceLocation resourceLocation)
@@ -141,17 +167,17 @@ public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
     private static class Face
     {
         // Vertex
-        public final int v1;
-        public final int v2;
-        public final int v3;
-        // Textfinal ure
-        public final int vt1;
-        public final int vt2;
-        public final int vt3;
-        // Normfinal al
-        public final int vn1;
-        public final int vn2;
-        public final int vn3;
+        public int v1;
+        public int v2;
+        public int v3;
+        // Texture
+        public int vt1;
+        public int vt2;
+        public int vt3;
+        // Normal
+        public int vn1;
+        public int vn2;
+        public int vn3;
 
         public Face(String v1, String v2, String v3)
         {
@@ -170,33 +196,6 @@ public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
             this.v3 = Integer.parseInt(s3[0]);
             this.vt3 = Integer.parseInt(s3[1]);
             this.vn3 = Integer.parseInt(s3[2]);
-        }
-
-        public VertexKey[] keys(ObjModel model) {
-            Vector2f vt1 = new Vector2f(model.vt[this.vt1 - 1].x, model.vt[this.vt1 - 1].y);
-            Vector2f vt2 = new Vector2f(model.vt[this.vt2 - 1].x, model.vt[this.vt2 - 1].y);
-            Vector2f vt3 = new Vector2f(model.vt[this.vt3 - 1].x, model.vt[this.vt3 - 1].y);
-
-            vt1.x *= 2;
-            vt1.y /= 2;
-            if (vt1.x > 1) vt1.x -= 1;
-            else vt1.y += 0.5;
-
-            vt2.x *= 2;
-            vt2.y /= 2;
-            if (vt2.x > 1) vt2.x -= 1;
-            else vt2.y += 0.5f;
-
-            vt3.x *= 2;
-            vt3.y /= 2;
-            if (vt3.x > 1) vt3.x -= 1;
-            else vt3.y += 0.5f;
-
-            return new VertexKey[]{
-                    new VertexKey(model.v[v1 - 1], vt1, model.vn[vn1 - 1]),
-                    new VertexKey(model.v[v2 - 1], vt2, model.vn[vn2 - 1]),
-                    new VertexKey(model.v[v3 - 1], vt3, model.vn[vn3 - 1]),
-            };
         }
     }
 }
