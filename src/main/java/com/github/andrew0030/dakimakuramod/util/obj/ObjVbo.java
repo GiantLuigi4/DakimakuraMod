@@ -2,16 +2,15 @@ package com.github.andrew0030.dakimakuramod.util.obj;
 
 import com.github.andrew0030.dakimakuramod.util.buffer.SmartBufferBuilder;
 import com.github.andrew0030.dakimakuramod.util.buffer.SuperVertexBuffer;
-import com.mojang.blaze3d.platform.Lighting;
+import com.github.andrew0030.dakimakuramod.util.iteration.LinkedStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import org.joml.Matrix3f;
-import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.libc.LibCString;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
@@ -20,10 +19,8 @@ public class ObjVbo implements Closeable {
     private final ObjModel model;
     private final SuperVertexBuffer buffer;
     private ByteBuffer lB;
-    private long addr;
-    private int capacityQuarter;
-    private int capacityHalf;
-    private int initialFillIters;
+    private ByteBuffer nB;
+    private final LinkedStack<Vector3f> norms = new LinkedStack<>();
 
     public ObjVbo(
             ObjModel model
@@ -37,18 +34,15 @@ public class ObjVbo implements Closeable {
         reload();
     }
 
-    protected void createLightBuf() {
+    protected void createBuffers() {
         lB = MemoryUtil.memAlloc(buffer.getOffset(1) - buffer.getOffset(0));
-        addr = MemoryUtil.memAddress(lB);
-
-        initialFillIters = lB.capacity() >> 5;
-        capacityQuarter = lB.capacity() >> 2;
-        capacityHalf = capacityQuarter << 1;
+        nB = MemoryUtil.memAlloc(buffer.getOffset(2) - buffer.getOffset(1));
     }
 
     int prevLight = 0;
 
     public void render(PoseStack stack, int packedLight) {
+        // upload light
         if (prevLight != packedLight) {
             prevLight = packedLight;
 
@@ -56,6 +50,29 @@ public class ObjVbo implements Closeable {
 
             for (int i = 0; i < lB.capacity() / 8; i++) lB.putLong(i << 3, asLong);
             buffer.updateElement(lB.position(0).limit(lB.capacity()), 0);
+        }
+
+        // upload normals
+        {
+            Matrix3f matrix3f = stack.last().normal();
+
+            int index = 0;
+            for (Vector3f norm : norms) {
+                float x = norm.x;
+                float y = norm.y;
+                float z = norm.z;
+
+                float nx = java.lang.Math.fma(matrix3f.m00(), x, java.lang.Math.fma(matrix3f.m10(), y, matrix3f.m20() * z));
+                float ny = java.lang.Math.fma(matrix3f.m01(), x, java.lang.Math.fma(matrix3f.m11(), y, matrix3f.m21() * z));
+                float nz = java.lang.Math.fma(matrix3f.m02(), x, Math.fma(matrix3f.m12(), y, matrix3f.m22() * z));
+
+                nB.put(index, SmartBufferBuilder.normalIntValue(nx));
+                nB.put(index + 1, SmartBufferBuilder.normalIntValue(ny));
+                nB.put(index + 2, SmartBufferBuilder.normalIntValue(nz));
+                index += 3;
+            }
+
+            buffer.updateElement(nB.position(0).limit(nB.capacity()), 1);
         }
 
         RenderSystem.getModelViewStack().pushPose();
@@ -71,27 +88,31 @@ public class ObjVbo implements Closeable {
     }
 
     public void reload() {
+        norms.clear();
+
         SmartBufferBuilder smartBufferBuilder = new SmartBufferBuilder(DefaultVertexFormat.NEW_ENTITY);
-        model.render(new PoseStack(), smartBufferBuilder, 0);
+        model.render(smartBufferBuilder, 0, norms);
         buffer.bind();
         buffer.upload(smartBufferBuilder,
-                // required elements
+                // mutable elements
                 DefaultVertexFormat.ELEMENT_UV2,
-                DefaultVertexFormat.ELEMENT_UV1,
-                DefaultVertexFormat.ELEMENT_COLOR,
-                // used elements
+                DefaultVertexFormat.ELEMENT_NORMAL,
+                // immutable elements
                 DefaultVertexFormat.ELEMENT_POSITION,
                 DefaultVertexFormat.ELEMENT_UV,
-                DefaultVertexFormat.ELEMENT_NORMAL
+                // unused for dakis
+                DefaultVertexFormat.ELEMENT_COLOR,
+                DefaultVertexFormat.ELEMENT_UV1
         );
         buffer.unbind();
         smartBufferBuilder.close();
 
-        createLightBuf();
+        createBuffers();
     }
 
     public void close() {
         buffer.close();
         MemoryUtil.memFree(lB);
+        MemoryUtil.memFree(nB);
     }
 }

@@ -2,6 +2,7 @@ package com.github.andrew0030.dakimakuramod.util.obj;
 
 import com.github.andrew0030.dakimakuramod.DakimakuraMod;
 import com.github.andrew0030.dakimakuramod.util.buffer.SmartBufferBuilder;
+import com.github.andrew0030.dakimakuramod.util.iteration.LinkedStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -15,13 +16,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 
 public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
 {
     record VertexKey(Vector3f vert, Vector2f tex, Vector3f norm) {
     }
 
-    public void render(PoseStack stack, SmartBufferBuilder buffer, int packedLight)
+    public void render(SmartBufferBuilder buffer, int packedLight, LinkedStack<Vector3f> norms)
     {
 //        buffer.color(255, 255, 255, 255);
 //        buffer.overlay(OverlayTexture.NO_OVERLAY);
@@ -54,6 +56,7 @@ public record ObjModel(Vector3f[] v, Vec2[] vt, Vector3f[] vn, Face[] faces)
                     buffer.index(
                             keys.computeIfAbsent(key, (k) -> {
                                 this.addVertex(buffer, key.vert.x(), key.vert.y(), key.vert.z(), key.tex.x, 1 - key.tex.y, packedLight, key.norm.x(), key.norm.y(), key.norm.z());
+                                norms.add(key.norm);
                                 return index[0]++;
                             })
                     );

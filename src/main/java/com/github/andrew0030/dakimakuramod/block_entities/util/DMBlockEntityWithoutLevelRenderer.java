@@ -4,7 +4,9 @@ import com.github.andrew0030.dakimakuramod.block_entities.dakimakura.DakimakuraB
 import com.github.andrew0030.dakimakuramod.block_entities.dakimakura.DakimakuraBlockEntityRenderer;
 import com.github.andrew0030.dakimakuramod.dakimakura.serialize.DakiTagSerializer;
 import com.github.andrew0030.dakimakuramod.registries.DMBlocks;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -12,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.Lazy;
+import org.joml.Matrix4f;
 
 public class DMBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRenderer
 {
@@ -32,9 +35,6 @@ public class DMBlockEntityWithoutLevelRenderer extends BlockEntityWithoutLevelRe
         // Renders the Dakimakura, while passing a lower LOD for GUI
         int lod = (displayContext == ItemDisplayContext.GUI) ? 3 : 0; // TODO add a config option for this
         DakimakuraBlockEntityRenderer renderer = (DakimakuraBlockEntityRenderer) Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(dakiBlockEntity);
-        if (ItemDisplayContext.GUI == displayContext) {
-            poseStack.translate(20, 0, 0);
-        }
         if (renderer != null)
             renderer.render(dakiBlockEntity, 0.0F, poseStack, buffer, packedLight, packedOverlay, lod);
     }

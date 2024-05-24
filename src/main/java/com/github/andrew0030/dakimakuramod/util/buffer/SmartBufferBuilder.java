@@ -201,7 +201,7 @@ public class SmartBufferBuilder implements Closeable {
         NORMAL.advance(3);
         return this;
     }
-    static byte normalIntValue(float pNum) {
+    public static byte normalIntValue(float pNum) {
         return (byte)((int)(Mth.clamp(pNum, -1.0F, 1.0F) * 127.0F) & 255);
     }
 
