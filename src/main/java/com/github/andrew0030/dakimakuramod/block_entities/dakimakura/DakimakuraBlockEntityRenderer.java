@@ -46,10 +46,8 @@ public class DakimakuraBlockEntityRenderer implements BlockEntityRenderer<Dakima
         if(blockEntity.getBlockState().getValue(DakimakuraBlock.TOP))
             return;
 
+//        PoseStack.Pose p = ((PoseStackAccessor) poseStack).dakimakuraMod$getSecondToLatest();
         poseStack.pushPose();
-        PoseStack.Pose p = ((PoseStackAccessor) poseStack).dakimakuraMod$getSecondToLatest();
-        poseStack.last().normal().set(p.normal().invert());
-        p.normal().invert();
 
         poseStack.translate(0.5F, 0.5F, 0.5F);
         switch(facing)
@@ -67,15 +65,15 @@ public class DakimakuraBlockEntityRenderer implements BlockEntityRenderer<Dakima
                 poseStack.mulPose(Axis.XN.rotationDegrees(90));
             if(face == AttachFace.CEILING)
                 poseStack.mulPose(Axis.YN.rotationDegrees(180));
-            if(face == AttachFace.FLOOR)
-                poseStack.last().normal().rotate(Axis.YN.rotationDegrees(180));
+//            if(face == AttachFace.FLOOR)
+//                poseStack.last().normal().rotate(Axis.YN.rotationDegrees(180));
             poseStack.translate(0.0F, 0.5F, -0.380F);
         }
 
         if(blockEntity.isFlipped())
             poseStack.mulPose(Axis.YN.rotationDegrees(180));
 
-        Lighting.setupLevel(new Matrix4f(poseStack.last().normal().invert()));
+//        Lighting.setupLevel(new Matrix4f(new Matrix3f(poseStack.last().pose()).invert().transpose()));
 
         if (lod == -1)
             this.dakimakuraModel.render(poseStack, packedLight, blockEntity.getDaki(), blockEntity.getBlockPos());
@@ -83,6 +81,6 @@ public class DakimakuraBlockEntityRenderer implements BlockEntityRenderer<Dakima
             this.dakimakuraModel.render(poseStack, packedLight, blockEntity.getDaki(), lod);
 
         poseStack.popPose();
-        Lighting.setupLevel(new Matrix4f(p.normal()));
+//        Lighting.setupLevel(new Matrix4f(p.pose()));
     }
 }
