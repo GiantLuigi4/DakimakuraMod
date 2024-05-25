@@ -19,29 +19,23 @@ public class ObjVbo implements Closeable {
     }
 
     public void render(PoseStack stack, int packedLight) {
-        Lighting.setupLevel(RenderSystem.getModelViewMatrix());
-
         reload(stack, packedLight);
-        buffer.bind();
         buffer.drawWithShader(
-                new Matrix4f(),
+                stack.last().pose(),
                 RenderSystem.getProjectionMatrix(),
                 RenderSystem.getShader()
         );
-        buffer.unbind();
-
-        Lighting.setupLevel(RenderSystem.getModelViewMatrix());
+        VertexBuffer.unbind();
     }
 
     static BufferBuilder smartBufferBuilder = new BufferBuilder(20);
 
     public void reload(PoseStack stack, int light) {
         smartBufferBuilder.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.NEW_ENTITY);
-        model.render(stack, smartBufferBuilder, light);
+        model.render(stack.last().normal(), smartBufferBuilder, light);
         buffer.bind();
         BufferBuilder.RenderedBuffer rb = smartBufferBuilder.end();
         buffer.upload(rb);
-        buffer.unbind();
     }
 
     public void close() {
